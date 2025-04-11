@@ -1,16 +1,9 @@
 
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 const Index = () => {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Redirect to landing page
-    navigate('/', { replace: true });
-  }, [navigate]);
-  
-  return null;
+  // Simply redirect to the landing page instead of creating a loop
+  return <Navigate to="/" replace />;
 };
 
 export default Index;
