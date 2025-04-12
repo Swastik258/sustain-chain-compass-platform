@@ -39,8 +39,42 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Plus, Filter, ArrowUpDown } from 'lucide-react';
 import { BadgeCustom } from '@/components/ui/badge-custom';
 
+// Define type interfaces for our order data
+interface CustomerOrder {
+  id: string;
+  customer: string;
+  items: number;
+  total: string;
+  date: string;
+  status: string;
+  paymentStatus: string;
+  shippingMethod: string;
+}
+
+interface SupplierOrder {
+  id: string;
+  supplier: string;
+  items: number;
+  total: string;
+  date: string;
+  status: string;
+  paymentStatus: string;
+  expectedDelivery: string;
+}
+
+type Order = CustomerOrder | SupplierOrder;
+
+// Check type guard functions
+const isCustomerOrder = (order: Order): order is CustomerOrder => {
+  return 'customer' in order;
+};
+
+const isSupplierOrder = (order: Order): order is SupplierOrder => {
+  return 'supplier' in order;
+};
+
 // Mock orders data
-const customerOrdersData = [
+const customerOrdersData: CustomerOrder[] = [
   {
     id: 'ORD-001',
     customer: 'EcoShop Inc.',
@@ -93,7 +127,7 @@ const customerOrdersData = [
   },
 ];
 
-const supplierOrdersData = [
+const supplierOrdersData: SupplierOrder[] = [
   {
     id: 'PO-001',
     supplier: 'EcoTextiles Inc.',
@@ -147,11 +181,12 @@ const Orders = () => {
   const supplierStatuses = ['All', 'Processing', 'In Transit', 'Received', 'Cancelled'];
   
   const currentStatuses = activeTab === 'customer' ? customerStatuses : supplierStatuses;
-  const currentData = activeTab === 'customer' ? customerOrdersData : supplierOrdersData;
+  const currentData: Order[] = activeTab === 'customer' ? customerOrdersData : supplierOrdersData;
   
   // Filter orders based on search term and filters
   const filteredOrders = currentData.filter(order => {
-    const searchField = activeTab === 'customer' ? order.customer : order.supplier;
+    // Use type guard to safely access properties
+    const searchField = isCustomerOrder(order) ? order.customer : order.supplier;
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           searchField.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
@@ -159,7 +194,7 @@ const Orders = () => {
     return matchesSearch && matchesStatus;
   });
   
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Delivered':
       case 'Received':
@@ -178,7 +213,7 @@ const Orders = () => {
     }
   };
   
-  const getPaymentStatusBadge = (status) => {
+  const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case 'Paid':
         return <BadgeCustom variant="success">{status}</BadgeCustom>;
@@ -347,13 +382,13 @@ const Orders = () => {
                         filteredOrders.map((order) => (
                           <TableRow key={order.id}>
                             <TableCell className="font-medium">{order.id}</TableCell>
-                            <TableCell>{order.customer}</TableCell>
+                            <TableCell>{isCustomerOrder(order) ? order.customer : ''}</TableCell>
                             <TableCell>{order.items}</TableCell>
                             <TableCell>{order.total}</TableCell>
                             <TableCell>{order.date}</TableCell>
                             <TableCell>{getStatusBadge(order.status)}</TableCell>
                             <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
-                            <TableCell>{order.shippingMethod}</TableCell>
+                            <TableCell>{isCustomerOrder(order) ? order.shippingMethod : ''}</TableCell>
                             <TableCell className="text-right">
                               <Button variant="outline" size="sm">View</Button>
                             </TableCell>
@@ -400,13 +435,13 @@ const Orders = () => {
                         filteredOrders.map((order) => (
                           <TableRow key={order.id}>
                             <TableCell className="font-medium">{order.id}</TableCell>
-                            <TableCell>{order.supplier}</TableCell>
+                            <TableCell>{isSupplierOrder(order) ? order.supplier : ''}</TableCell>
                             <TableCell>{order.items}</TableCell>
                             <TableCell>{order.total}</TableCell>
                             <TableCell>{order.date}</TableCell>
                             <TableCell>{getStatusBadge(order.status)}</TableCell>
                             <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
-                            <TableCell>{order.expectedDelivery}</TableCell>
+                            <TableCell>{isSupplierOrder(order) ? order.expectedDelivery : ''}</TableCell>
                             <TableCell className="text-right">
                               <Button variant="outline" size="sm">View</Button>
                             </TableCell>
