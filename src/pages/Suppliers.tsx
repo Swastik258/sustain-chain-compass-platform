@@ -7,9 +7,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -19,309 +18,423 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Plus, MapPin, Phone, Mail, Globe } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Search, Plus, Filter, Star, ArrowUpDown } from 'lucide-react';
+import { BadgeCustom } from '@/components/ui/badge-custom';
+import { Checkbox } from '@/components/ui/checkbox';
 
-// Mock supplier data
-const suppliersList = [
+// Mock suppliers data
+const suppliersData = [
   {
     id: 'SUP001',
-    name: 'Eco Materials Co.',
+    name: 'EcoTextiles Inc.',
     category: 'Raw Materials',
     location: 'Portland, OR',
-    contact: 'sarah.johnson@ecomaterials.com',
-    phone: '+1 (503) 555-7890',
-    website: 'ecomaterials.com',
-    status: 'Active',
-    rating: 92,
-    certifications: ['Organic', 'Fair Trade', 'Carbon Neutral'],
-    lastAudit: '2025-02-15',
-    riskLevel: 'Low'
+    rating: 4.5,
+    sustainabilityScore: 92,
+    complianceStatus: 'Compliant',
+    activeOrders: 3,
+    lastOrderDate: '2024-04-01',
   },
   {
     id: 'SUP002',
-    name: 'Green Transport Inc.',
-    category: 'Logistics',
+    name: 'GreenPaper Co.',
+    category: 'Packaging',
     location: 'Seattle, WA',
-    contact: 'mike.smith@greentransport.com',
-    phone: '+1 (206) 555-1234',
-    website: 'greentransport.com',
-    status: 'Active',
-    rating: 88,
-    certifications: ['ISO 14001', 'SmartWay'],
-    lastAudit: '2025-01-20',
-    riskLevel: 'Low'
+    rating: 4.2,
+    sustainabilityScore: 88,
+    complianceStatus: 'Compliant',
+    activeOrders: 1,
+    lastOrderDate: '2024-03-15',
   },
   {
     id: 'SUP003',
-    name: 'Sustainable Packaging',
+    name: 'BioPackaging Solutions',
     category: 'Packaging',
     location: 'Austin, TX',
-    contact: 'lisa.wong@sustainpack.com',
-    phone: '+1 (512) 555-9876',
-    website: 'sustainpack.com',
-    status: 'Active',
-    rating: 76,
-    certifications: ['FSC', 'Biodegradable'],
-    lastAudit: '2024-11-05',
-    riskLevel: 'Medium'
+    rating: 4.7,
+    sustainabilityScore: 95,
+    complianceStatus: 'Compliant',
+    activeOrders: 2,
+    lastOrderDate: '2024-04-03',
   },
   {
     id: 'SUP004',
-    name: 'Raw Materials Global',
-    category: 'Raw Materials',
-    location: 'Chicago, IL',
-    contact: 'david.chen@rmglobal.com',
-    phone: '+1 (312) 555-5432',
-    website: 'rmglobal.com',
-    status: 'Under Review',
-    rating: 62,
-    certifications: ['ISO 9001'],
-    lastAudit: '2024-09-12',
-    riskLevel: 'High'
+    name: 'NatureTech Solutions',
+    category: 'Electronics',
+    location: 'San Francisco, CA',
+    rating: 3.8,
+    sustainabilityScore: 78,
+    complianceStatus: 'Under Review',
+    activeOrders: 0,
+    lastOrderDate: '2024-02-28',
   },
   {
     id: 'SUP005',
-    name: 'Clean Energy Partners',
-    category: 'Energy',
+    name: 'SunPower Electronics',
+    category: 'Electronics',
     location: 'Denver, CO',
-    contact: 'alex.rodriguez@cleanenergy.com',
-    phone: '+1 (720) 555-6789',
-    website: 'cleanenergy.com',
-    status: 'Active',
-    rating: 95,
-    certifications: ['Green Power', 'Carbon Trust', 'B Corp'],
-    lastAudit: '2025-03-10',
-    riskLevel: 'Low'
+    rating: 4.4,
+    sustainabilityScore: 85,
+    complianceStatus: 'Compliant',
+    activeOrders: 1,
+    lastOrderDate: '2024-03-22',
   },
   {
     id: 'SUP006',
-    name: 'Textile Innovations',
+    name: 'ReThreaded Goods',
     category: 'Textiles',
-    location: 'Los Angeles, CA',
-    contact: 'priya.patel@textileinnovate.com',
-    phone: '+1 (213) 555-8765',
-    website: 'textileinnovate.com',
-    status: 'Inactive',
-    rating: 70,
-    certifications: ['OEKO-TEX', 'GOTS'],
-    lastAudit: '2024-08-22',
-    riskLevel: 'Medium'
-  }
+    location: 'Brooklyn, NY',
+    rating: 3.9,
+    sustainabilityScore: 81,
+    complianceStatus: 'Under Review',
+    activeOrders: 0,
+    lastOrderDate: '2024-03-10',
+  },
+  {
+    id: 'SUP007',
+    name: 'EcoSolve Materials',
+    category: 'Raw Materials',
+    location: 'Chicago, IL',
+    rating: 4.1,
+    sustainabilityScore: 83,
+    complianceStatus: 'Compliant',
+    activeOrders: 2,
+    lastOrderDate: '2024-04-05',
+  },
+  {
+    id: 'SUP008',
+    name: 'Green Transport Logistics',
+    category: 'Logistics',
+    location: 'Atlanta, GA',
+    rating: 4.3,
+    sustainabilityScore: 79,
+    complianceStatus: 'Under Review',
+    activeOrders: 1,
+    lastOrderDate: '2024-03-28',
+  },
+];
+
+const topSuppliersData = [
+  {
+    name: 'BioPackaging Solutions',
+    score: 95,
+    strengths: ['Carbon Neutral', 'Renewable Energy', 'Zero Waste'],
+  },
+  {
+    name: 'EcoTextiles Inc.',
+    score: 92,
+    strengths: ['Ethical Labor', 'Organic Materials', 'Water Conservation'],
+  },
+  {
+    name: 'GreenPaper Co.',
+    score: 88,
+    strengths: ['Recycled Materials', 'Forest Stewardship', 'Local Sourcing'],
+  },
 ];
 
 const Suppliers = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [complianceFilter, setComplianceFilter] = useState('All');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
-  // Filter suppliers based on search term
-  const filteredSuppliers = suppliersList.filter(supplier => 
-    supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique categories for filter
+  const categories = ['All', ...new Set(suppliersData.map(supplier => supplier.category))];
+  const complianceStatuses = ['All', 'Compliant', 'Under Review', 'Non-Compliant'];
   
-  const handleAddSupplier = () => {
-    toast({
-      title: "Feature Coming Soon",
-      description: "Add supplier functionality will be available in the next update.",
-    });
-  };
-
-  const getRatingColor = (rating: number) => {
-    if (rating >= 85) return 'bg-success/15 text-success';
-    if (rating >= 70) return 'bg-primary/15 text-primary';
-    if (rating >= 50) return 'bg-warning/15 text-warning';
-    return 'bg-destructive/15 text-destructive';
-  };
-
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'Low': return 'bg-success/15 text-success';
-      case 'Medium': return 'bg-warning/15 text-warning';
-      case 'High': return 'bg-destructive/15 text-destructive';
-      default: return '';
+  // Filter suppliers based on search term and filters
+  const filteredSuppliers = suppliersData.filter(supplier => {
+    const matchesSearch = supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         supplier.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'All' || supplier.category === categoryFilter;
+    const matchesCompliance = complianceFilter === 'All' || supplier.complianceStatus === complianceFilter;
+    
+    return matchesSearch && matchesCategory && matchesCompliance;
+  });
+  
+  const getSustainabilityScoreBadge = (score) => {
+    if (score >= 90) {
+      return <BadgeCustom variant="success">{score}</BadgeCustom>;
+    } else if (score >= 75) {
+      return <BadgeCustom variant="secondary">{score}</BadgeCustom>;
+    } else {
+      return <BadgeCustom variant="destructive">{score}</BadgeCustom>;
     }
   };
-
+  
+  const renderRatingStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    return (
+      <div className="flex items-center">
+        {Array(fullStars).fill(0).map((_, i) => (
+          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+        ))}
+        {hasHalfStar && (
+          <div className="relative">
+            <Star className="h-4 w-4 text-primary" />
+            <div className="absolute inset-0 overflow-hidden w-1/2">
+              <Star className="h-4 w-4 fill-primary text-primary" />
+            </div>
+          </div>
+        )}
+        {Array(5 - fullStars - (hasHalfStar ? 1 : 0)).fill(0).map((_, i) => (
+          <Star key={i + fullStars + (hasHalfStar ? 1 : 0)} className="h-4 w-4 text-muted" />
+        ))}
+        <span className="ml-2 text-sm">{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+  
+  const getComplianceStatusBadge = (status) => {
+    switch (status) {
+      case 'Compliant':
+        return <BadgeCustom variant="success">{status}</BadgeCustom>;
+      case 'Under Review':
+        return <BadgeCustom variant="warning">{status}</BadgeCustom>;
+      case 'Non-Compliant':
+        return <BadgeCustom variant="destructive">{status}</BadgeCustom>;
+      default:
+        return <BadgeCustom>{status}</BadgeCustom>;
+    }
+  };
+  
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Supplier Management</h1>
-            <p className="text-muted-foreground">Monitor and manage your sustainable suppliers</p>
-          </div>
-          <Button onClick={handleAddSupplier} className="gap-1.5">
-            <Plus className="size-4" />
-            Add Supplier
-          </Button>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Supplier Management</h1>
+          <p className="text-muted-foreground">Track, manage, and assess your sustainable suppliers</p>
         </div>
         
-        <Tabs defaultValue="all">
-          <TabsList>
-            <TabsTrigger value="all">All Suppliers</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="review">Under Review</TabsTrigger>
-            <TabsTrigger value="inactive">Inactive</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Supplier Directory</CardTitle>
-                <CardDescription>Manage your network of sustainable suppliers</CardDescription>
-                <div className="relative mt-4">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search suppliers..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {topSuppliersData.map((supplier, index) => (
+            <Card key={index}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">{supplier.name}</CardTitle>
+                <CardDescription>Top Performing Supplier</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Sustainability Rating</TableHead>
-                      <TableHead>Risk Level</TableHead>
-                      <TableHead>Last Audit</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredSuppliers.map((supplier) => (
-                      <TableRow key={supplier.id} className="cursor-pointer hover:bg-muted/50">
-                        <TableCell>
-                          <div className="font-medium">{supplier.name}</div>
-                          <div className="text-sm text-muted-foreground">{supplier.id}</div>
-                        </TableCell>
+              <CardContent className="pb-2">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="text-2xl font-bold">{supplier.score}</div>
+                  <div className="text-sm text-muted-foreground">Sustainability Score</div>
+                </div>
+                <div className="space-y-1">
+                  {supplier.strengths.map((strength, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-success" />
+                      <span className="text-sm">{strength}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" size="sm" className="w-full">View Details</Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-between">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search suppliers..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={complianceFilter} onValueChange={setComplianceFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Compliance" />
+                </SelectTrigger>
+                <SelectContent>
+                  {complianceStatuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+              <DialogTrigger asChild>
+                <Button className="ml-auto">
+                  <Plus className="h-4 w-4 mr-2" /> Add Supplier
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[550px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Supplier</DialogTitle>
+                  <DialogDescription>
+                    Enter the supplier details. Click save when you're done.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Supplier Name
+                    </Label>
+                    <Input id="name" className="col-span-3" />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="category" className="text-right">
+                      Category
+                    </Label>
+                    <Select>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.filter(c => c !== 'All').map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="location" className="text-right">
+                      Location
+                    </Label>
+                    <Input id="location" className="col-span-3" />
+                  </div>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label htmlFor="compliance" className="text-right pt-2">
+                      Sustainability Certifications
+                    </Label>
+                    <div className="col-span-3 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="cert1" />
+                        <Label htmlFor="cert1">Fair Trade Certified</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="cert2" />
+                        <Label htmlFor="cert2">LEED Certification</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="cert3" />
+                        <Label htmlFor="cert3">ISO 14001</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="cert4" />
+                        <Label htmlFor="cert4">Cradle to Cradle</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => setIsAddModalOpen(false)}>Save</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+        
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-auto max-h-[70vh]">
+              <Table>
+                <TableHeader className="sticky top-0 bg-card">
+                  <TableRow>
+                    <TableHead className="w-[100px]">ID</TableHead>
+                    <TableHead className="min-w-[200px]">
+                      <div className="flex items-center gap-1">
+                        Supplier Name <ArrowUpDown className="h-4 w-4" />
+                      </div>
+                    </TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Sustainability Score</TableHead>
+                    <TableHead>Compliance Status</TableHead>
+                    <TableHead>Active Orders</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredSuppliers.length > 0 ? (
+                    filteredSuppliers.map((supplier) => (
+                      <TableRow key={supplier.id}>
+                        <TableCell className="font-medium">{supplier.id}</TableCell>
+                        <TableCell>{supplier.name}</TableCell>
                         <TableCell>{supplier.category}</TableCell>
-                        <TableCell className="flex items-center gap-1">
-                          <MapPin className="size-3.5" />
-                          {supplier.location}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            supplier.status === 'Active' ? 'default' :
-                            supplier.status === 'Under Review' ? 'warning' : 'secondary'
-                          }>
-                            {supplier.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Progress value={supplier.rating} className="w-20 h-2" />
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRatingColor(supplier.rating)}`}>
-                              {supplier.rating}/100
-                            </span>
+                        <TableCell>{supplier.location}</TableCell>
+                        <TableCell>{renderRatingStars(supplier.rating)}</TableCell>
+                        <TableCell>{getSustainabilityScoreBadge(supplier.sustainabilityScore)}</TableCell>
+                        <TableCell>{getComplianceStatusBadge(supplier.complianceStatus)}</TableCell>
+                        <TableCell>{supplier.activeOrders}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm">View</Button>
+                            <Button variant="outline" size="sm">Orders</Button>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRiskColor(supplier.riskLevel)}`}>
-                            {supplier.riskLevel}
-                          </span>
-                        </TableCell>
-                        <TableCell>{supplier.lastAudit}</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="active" className="mt-4">
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">
-                  Active suppliers will be listed here.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="review" className="mt-4">
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">
-                  Suppliers under review will be listed here.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="inactive" className="mt-4">
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">
-                  Inactive suppliers will be listed here.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        
-        {filteredSuppliers.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Supplier Highlight</CardTitle>
-              <CardDescription>Details of a featured sustainable supplier</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-xl font-medium mb-2">{filteredSuppliers[0].name}</h3>
-                  <p className="text-muted-foreground mb-4">{filteredSuppliers[0].category}</p>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="size-4 text-muted-foreground" />
-                      <span>{filteredSuppliers[0].location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="size-4 text-muted-foreground" />
-                      <span>{filteredSuppliers[0].contact}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="size-4 text-muted-foreground" />
-                      <span>{filteredSuppliers[0].phone}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Globe className="size-4 text-muted-foreground" />
-                      <span>{filteredSuppliers[0].website}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium mb-2">Sustainability Certifications</h4>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {filteredSuppliers[0].certifications.map((cert, index) => (
-                      <Badge key={index} variant="outline">{cert}</Badge>
-                    ))}
-                  </div>
-                  
-                  <h4 className="font-medium mb-2">Sustainability Rating</h4>
-                  <div className="space-y-2">
-                    <Progress value={filteredSuppliers[0].rating} className="h-2" />
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Score</span>
-                      <span className="font-medium">{filteredSuppliers[0].rating}/100</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-8">
+                        No suppliers found. Try adjusting your filters.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );

@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Mock data for analytics
 const monthlyData = [
@@ -34,11 +35,13 @@ const kpiData = [
 ];
 
 const Analytics = () => {
+  const isMobile = useIsMobile();
+  
   return (
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Analytics</h1>
           <p className="text-muted-foreground">Track your supply chain performance metrics</p>
         </div>
         
@@ -49,12 +52,12 @@ const Analytics = () => {
               <CardDescription>Monthly financial overview for the current year</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px]">
+              <div className="h-[300px] md:h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData}>
+                  <BarChart data={monthlyData.slice(isMobile ? -6 : 0)}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis />
+                    <YAxis width={isMobile ? 30 : 40} />
                     <Tooltip />
                     <Bar dataKey="revenue" name="Revenue" fill="hsl(var(--primary))" />
                     <Bar dataKey="expenses" name="Expenses" fill="hsl(var(--destructive))" />
@@ -70,12 +73,12 @@ const Analytics = () => {
               <CardDescription>Monthly profit/loss analysis</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px]">
+              <div className="h-[300px] md:h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={monthlyData}>
+                  <LineChart data={monthlyData.slice(isMobile ? -6 : 0)}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis />
+                    <YAxis width={isMobile ? 30 : 40} />
                     <Tooltip />
                     <Line 
                       type="monotone" 

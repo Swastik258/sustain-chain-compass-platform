@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -16,256 +17,411 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, FileDown, FileUp, Eye } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Search, Plus, Filter, ArrowUpDown } from 'lucide-react';
+import { BadgeCustom } from '@/components/ui/badge-custom';
 
-// Mock order data
-const orders = [
+// Mock orders data
+const customerOrdersData = [
   {
-    id: 'ORD-2025-1001',
-    customer: 'EcoFashion Inc.',
-    date: '2025-04-10',
-    amount: 12500.00,
-    status: 'Delivered',
-    items: 8,
-    carbonFootprint: 'Low',
-    paymentStatus: 'Paid'
-  },
-  {
-    id: 'ORD-2025-1002',
-    customer: 'Green Living Co.',
-    date: '2025-04-09',
-    amount: 8750.50,
-    status: 'In Transit',
-    items: 12,
-    carbonFootprint: 'Medium',
-    paymentStatus: 'Paid'
-  },
-  {
-    id: 'ORD-2025-1003',
-    customer: 'Sustainable Home',
-    date: '2025-04-08',
-    amount: 5280.75,
-    status: 'Processing',
+    id: 'ORD-001',
+    customer: 'EcoShop Inc.',
     items: 5,
-    carbonFootprint: 'Low',
-    paymentStatus: 'Pending'
-  },
-  {
-    id: 'ORD-2025-1004',
-    customer: 'Eco Office Solutions',
-    date: '2025-04-07',
-    amount: 15900.25,
+    total: '$2,450.00',
+    date: '2024-04-01',
     status: 'Delivered',
-    items: 20,
-    carbonFootprint: 'Medium',
-    paymentStatus: 'Paid'
+    paymentStatus: 'Paid',
+    shippingMethod: 'Standard',
   },
   {
-    id: 'ORD-2025-1005',
-    customer: 'Organic Products Ltd.',
-    date: '2025-04-05',
-    amount: 3450.00,
+    id: 'ORD-002',
+    customer: 'Green Living Co.',
+    items: 2,
+    total: '$980.50',
+    date: '2024-04-03',
+    status: 'Processing',
+    paymentStatus: 'Paid',
+    shippingMethod: 'Express',
+  },
+  {
+    id: 'ORD-003',
+    customer: 'Sustainable Homes',
+    items: 8,
+    total: '$4,325.75',
+    date: '2024-04-05',
+    status: 'Shipped',
+    paymentStatus: 'Paid',
+    shippingMethod: 'Standard',
+  },
+  {
+    id: 'ORD-004',
+    customer: 'GreenTech Solutions',
+    items: 1,
+    total: '$750.00',
+    date: '2024-04-07',
+    status: 'Pending',
+    paymentStatus: 'Awaiting',
+    shippingMethod: 'Express',
+  },
+  {
+    id: 'ORD-005',
+    customer: 'Eco Warriors Ltd',
+    items: 3,
+    total: '$1,290.25',
+    date: '2024-04-08',
     status: 'Cancelled',
-    items: 4,
-    carbonFootprint: 'Low',
-    paymentStatus: 'Refunded'
+    paymentStatus: 'Refunded',
+    shippingMethod: 'Standard',
+  },
+];
+
+const supplierOrdersData = [
+  {
+    id: 'PO-001',
+    supplier: 'EcoTextiles Inc.',
+    items: 3,
+    total: '$6,250.00',
+    date: '2024-03-25',
+    status: 'Received',
+    paymentStatus: 'Paid',
+    expectedDelivery: '2024-04-01',
   },
   {
-    id: 'ORD-2025-1006',
-    customer: 'Circular Economy Group',
-    date: '2025-04-04',
-    amount: 22780.50,
-    status: 'Delivered',
-    items: 25,
-    carbonFootprint: 'High',
-    paymentStatus: 'Paid'
+    id: 'PO-002',
+    supplier: 'GreenPaper Co.',
+    items: 1,
+    total: '$2,500.00',
+    date: '2024-03-28',
+    status: 'In Transit',
+    paymentStatus: 'Paid',
+    expectedDelivery: '2024-04-08',
+  },
+  {
+    id: 'PO-003',
+    supplier: 'BioPackaging Solutions',
+    items: 4,
+    total: '$8,750.00',
+    date: '2024-04-01',
+    status: 'Processing',
+    paymentStatus: 'Pending',
+    expectedDelivery: '2024-04-15',
+  },
+  {
+    id: 'PO-004',
+    supplier: 'NatureTech Solutions',
+    items: 2,
+    total: '$3,800.00',
+    date: '2024-04-03',
+    status: 'Processing',
+    paymentStatus: 'Pending',
+    expectedDelivery: '2024-04-18',
   },
 ];
 
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [activeTab, setActiveTab] = useState('customer');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
-  // Filter orders based on search term
-  const filteredOrders = orders.filter(order => 
-    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.customer.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique statuses for filter
+  const customerStatuses = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+  const supplierStatuses = ['All', 'Processing', 'In Transit', 'Received', 'Cancelled'];
   
-  const handleExport = () => {
-    toast({
-      title: "Exporting Orders",
-      description: "Your order data is being prepared for download.",
-    });
+  const currentStatuses = activeTab === 'customer' ? customerStatuses : supplierStatuses;
+  const currentData = activeTab === 'customer' ? customerOrdersData : supplierOrdersData;
+  
+  // Filter orders based on search term and filters
+  const filteredOrders = currentData.filter(order => {
+    const searchField = activeTab === 'customer' ? order.customer : order.supplier;
+    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          searchField.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+  
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Delivered':
+      case 'Received':
+        return <BadgeCustom variant="success">{status}</BadgeCustom>;
+      case 'Shipped':
+      case 'In Transit':
+        return <BadgeCustom variant="secondary">{status}</BadgeCustom>;
+      case 'Processing':
+        return <BadgeCustom variant="warning">{status}</BadgeCustom>;
+      case 'Pending':
+        return <BadgeCustom variant="default">{status}</BadgeCustom>;
+      case 'Cancelled':
+        return <BadgeCustom variant="destructive">{status}</BadgeCustom>;
+      default:
+        return <BadgeCustom variant="default">{status}</BadgeCustom>;
+    }
   };
-
-  const handleImport = () => {
-    toast({
-      title: "Import Orders",
-      description: "Order import functionality will be available soon.",
-    });
+  
+  const getPaymentStatusBadge = (status) => {
+    switch (status) {
+      case 'Paid':
+        return <BadgeCustom variant="success">{status}</BadgeCustom>;
+      case 'Pending':
+        return <BadgeCustom variant="warning">{status}</BadgeCustom>;
+      case 'Awaiting':
+        return <BadgeCustom variant="secondary">{status}</BadgeCustom>;
+      case 'Refunded':
+        return <BadgeCustom variant="destructive">{status}</BadgeCustom>;
+      default:
+        return <BadgeCustom variant="default">{status}</BadgeCustom>;
+    }
   };
-
-  const handleViewOrder = (orderId: string) => {
-    toast({
-      title: "Order Details",
-      description: `Viewing details for order ${orderId}`,
-    });
-  };
-
+  
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
-            <p className="text-muted-foreground">Manage and track your customer orders</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleImport} className="gap-1.5">
-              <FileUp className="size-4" />
-              Import
-            </Button>
-            <Button onClick={handleExport} className="gap-1.5">
-              <FileDown className="size-4" />
-              Export
-            </Button>
-          </div>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Orders Management</h1>
+          <p className="text-muted-foreground">Manage customer orders and supplier purchase orders</p>
         </div>
         
-        <Tabs defaultValue="all">
-          <TabsList>
-            <TabsTrigger value="all">All Orders</TabsTrigger>
-            <TabsTrigger value="processing">Processing</TabsTrigger>
-            <TabsTrigger value="transit">In Transit</TabsTrigger>
-            <TabsTrigger value="delivered">Delivered</TabsTrigger>
-            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+        <Tabs defaultValue="customer" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full md:w-auto">
+            <TabsTrigger className="flex-1 md:flex-none" value="customer">Customer Orders</TabsTrigger>
+            <TabsTrigger className="flex-1 md:flex-none" value="supplier">Supplier Orders</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="all" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Order Management</CardTitle>
-                <CardDescription>View and manage all customer orders</CardDescription>
-                <div className="relative mt-4">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search orders by ID or customer..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Carbon Impact</TableHead>
-                      <TableHead>Payment</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.id}</TableCell>
-                        <TableCell>{order.customer}</TableCell>
-                        <TableCell>{order.date}</TableCell>
-                        <TableCell>{order.items}</TableCell>
-                        <TableCell className="text-right">${order.amount.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            order.status === 'Delivered' ? 'default' :
-                            order.status === 'In Transit' ? 'secondary' :
-                            order.status === 'Processing' ? 'warning' : 'destructive'
-                          }>
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            order.carbonFootprint === 'Low' ? 'success' :
-                            order.carbonFootprint === 'Medium' ? 'warning' : 'destructive'
-                          } className={
-                            order.carbonFootprint === 'Low' ? 'bg-success/15 text-success' :
-                            order.carbonFootprint === 'Medium' ? 'bg-warning/15 text-warning' : 'bg-destructive/15 text-destructive'
-                          }>
-                            {order.carbonFootprint}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            order.paymentStatus === 'Paid' ? 'default' :
-                            order.paymentStatus === 'Pending' ? 'warning' : 'secondary'
-                          }>
-                            {order.paymentStatus}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewOrder(order.id)}
-                          >
-                            <Eye className="size-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+          <div className="mt-4 flex flex-col sm:flex-row gap-4 justify-between">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={`Search ${activeTab === 'customer' ? 'customer' : 'supplier'} orders...`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
                     ))}
-                  </TableBody>
-                </Table>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                <DialogTrigger asChild>
+                  <Button className="ml-auto">
+                    <Plus className="h-4 w-4 mr-2" /> New Order
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[550px]">
+                  <DialogHeader>
+                    <DialogTitle>Create New {activeTab === 'customer' ? 'Customer Order' : 'Purchase Order'}</DialogTitle>
+                    <DialogDescription>
+                      Enter the order details. Click save when you're done.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="name" className="text-right">
+                        {activeTab === 'customer' ? 'Customer' : 'Supplier'}
+                      </Label>
+                      <Input id="name" className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="items" className="text-right">
+                        Items
+                      </Label>
+                      <Input id="items" type="number" className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="total" className="text-right">
+                        Total Amount
+                      </Label>
+                      <Input id="total" placeholder="$0.00" className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="status" className="text-right">
+                        Status
+                      </Label>
+                      <Select>
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {currentStatuses.filter(s => s !== 'All').map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {activeTab === 'customer' && (
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="shipping" className="text-right">
+                          Shipping Method
+                        </Label>
+                        <Select>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select shipping method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="standard">Standard</SelectItem>
+                            <SelectItem value="express">Express</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    {activeTab === 'supplier' && (
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="delivery" className="text-right">
+                          Expected Delivery
+                        </Label>
+                        <Input id="delivery" type="date" className="col-span-3" />
+                      </div>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={() => setIsAddModalOpen(false)}>Save</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+          
+          <TabsContent value="customer">
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-auto max-h-[70vh]">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-card">
+                      <TableRow>
+                        <TableHead className="w-[100px]">Order ID</TableHead>
+                        <TableHead className="min-w-[200px]">
+                          <div className="flex items-center gap-1">
+                            Customer <ArrowUpDown className="h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead>Shipping</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOrders.length > 0 ? (
+                        filteredOrders.map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium">{order.id}</TableCell>
+                            <TableCell>{order.customer}</TableCell>
+                            <TableCell>{order.items}</TableCell>
+                            <TableCell>{order.total}</TableCell>
+                            <TableCell>{order.date}</TableCell>
+                            <TableCell>{getStatusBadge(order.status)}</TableCell>
+                            <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
+                            <TableCell>{order.shippingMethod}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="outline" size="sm">View</Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-8">
+                            No orders found. Try adjusting your filters.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
           
-          <TabsContent value="processing" className="mt-4">
+          <TabsContent value="supplier">
             <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">
-                  Filtered orders in "Processing" status will appear here.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="transit" className="mt-4">
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">
-                  Filtered orders in "In Transit" status will appear here.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="delivered" className="mt-4">
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">
-                  Filtered orders in "Delivered" status will appear here.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="cancelled" className="mt-4">
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">
-                  Filtered orders in "Cancelled" status will appear here.
-                </p>
+              <CardContent className="p-0">
+                <div className="overflow-auto max-h-[70vh]">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-card">
+                      <TableRow>
+                        <TableHead className="w-[100px]">PO Number</TableHead>
+                        <TableHead className="min-w-[200px]">
+                          <div className="flex items-center gap-1">
+                            Supplier <ArrowUpDown className="h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Order Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead>Expected Delivery</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOrders.length > 0 ? (
+                        filteredOrders.map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium">{order.id}</TableCell>
+                            <TableCell>{order.supplier}</TableCell>
+                            <TableCell>{order.items}</TableCell>
+                            <TableCell>{order.total}</TableCell>
+                            <TableCell>{order.date}</TableCell>
+                            <TableCell>{getStatusBadge(order.status)}</TableCell>
+                            <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
+                            <TableCell>{order.expectedDelivery}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="outline" size="sm">View</Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-8">
+                            No purchase orders found. Try adjusting your filters.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

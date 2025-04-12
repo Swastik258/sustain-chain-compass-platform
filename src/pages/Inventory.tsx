@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { Search, Plus, Filter, ArrowUpDown } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -9,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -17,178 +17,310 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Search, Plus, Filter, ArrowUpDown } from 'lucide-react';
+import { BadgeCustom } from '@/components/ui/badge-custom';
 
 // Mock inventory data
-const inventoryItems = [
-  { 
-    id: '1', 
-    name: 'Organic Cotton', 
-    category: 'Raw Material',
-    quantity: 5000,
-    unit: 'kg',
+const inventoryData = [
+  {
+    id: 'INV001',
+    name: 'Organic Cotton T-shirts',
+    category: 'Apparel',
+    stockLevel: 234,
     status: 'In Stock',
-    location: 'Warehouse A',
-    lastUpdated: '2025-04-05',
-    sustainabilityScore: 92
+    supplier: 'EcoTextiles Inc.',
+    sustainabilityScore: 85,
+    lastUpdated: '2024-04-01',
   },
-  { 
-    id: '2', 
-    name: 'Recycled Polyester', 
-    category: 'Raw Material',
-    quantity: 3200,
-    unit: 'kg',
-    status: 'In Stock',
-    location: 'Warehouse B',
-    lastUpdated: '2025-04-02',
-    sustainabilityScore: 88
-  },
-  { 
-    id: '3', 
-    name: 'Bamboo Fabric', 
-    category: 'Raw Material',
-    quantity: 800,
-    unit: 'yards',
+  {
+    id: 'INV002',
+    name: 'Recycled Paper Notebooks',
+    category: 'Stationery',
+    stockLevel: 56,
     status: 'Low Stock',
-    location: 'Warehouse A',
-    lastUpdated: '2025-04-10',
-    sustainabilityScore: 95
+    supplier: 'GreenPaper Co.',
+    sustainabilityScore: 92,
+    lastUpdated: '2024-04-03',
   },
-  { 
-    id: '4', 
-    name: 'Biodegradable Packaging', 
+  {
+    id: 'INV003',
+    name: 'Bamboo Phone Cases',
+    category: 'Accessories',
+    stockLevel: 189,
+    status: 'In Stock',
+    supplier: 'NatureTech Solutions',
+    sustainabilityScore: 78,
+    lastUpdated: '2024-04-05',
+  },
+  {
+    id: 'INV004',
+    name: 'Solar-Powered Chargers',
+    category: 'Electronics',
+    stockLevel: 12,
+    status: 'Low Stock',
+    supplier: 'SunPower Electronics',
+    sustainabilityScore: 95,
+    lastUpdated: '2024-04-02',
+  },
+  {
+    id: 'INV005',
+    name: 'Plant-based Plastic Containers',
     category: 'Packaging',
-    quantity: 10000,
-    unit: 'pcs',
+    stockLevel: 432,
     status: 'In Stock',
-    location: 'Warehouse C',
-    lastUpdated: '2025-03-28',
-    sustainabilityScore: 90
+    supplier: 'BioPackaging Solutions',
+    sustainabilityScore: 89,
+    lastUpdated: '2024-04-06',
   },
-  { 
-    id: '5', 
-    name: 'Natural Dyes', 
-    category: 'Auxiliary',
-    quantity: 250,
-    unit: 'liters',
-    status: 'Low Stock',
-    location: 'Warehouse B',
-    lastUpdated: '2025-04-08',
-    sustainabilityScore: 96
-  },
-  { 
-    id: '6', 
-    name: 'Organic Hemp', 
-    category: 'Raw Material',
-    quantity: 0,
-    unit: 'kg',
+  {
+    id: 'INV006',
+    name: 'Upcycled Denim Bags',
+    category: 'Accessories',
+    stockLevel: 0,
     status: 'Out of Stock',
-    location: 'Warehouse A',
-    lastUpdated: '2025-03-15',
-    sustainabilityScore: 98
+    supplier: 'ReThreaded Goods',
+    sustainabilityScore: 82,
+    lastUpdated: '2024-03-30',
+  },
+  {
+    id: 'INV007',
+    name: 'Water-Soluble Packaging Film',
+    category: 'Packaging',
+    stockLevel: 87,
+    status: 'In Stock',
+    supplier: 'EcoSolve Materials',
+    sustainabilityScore: 91,
+    lastUpdated: '2024-04-04',
   },
 ];
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
-  // Filter inventory items based on search term
-  const filteredItems = inventoryItems.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique categories for filter
+  const categories = ['All', ...new Set(inventoryData.map(item => item.category))];
+  const statuses = ['All', 'In Stock', 'Low Stock', 'Out of Stock'];
   
-  const handleAddInventory = () => {
-    toast({
-      title: "Feature Coming Soon",
-      description: "Add inventory functionality will be available in the next update.",
-    });
+  // Filter inventory based on search term and filters
+  const filteredInventory = inventoryData.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         item.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
+    const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
+    
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+  
+  const getStockStatusBadge = (status) => {
+    switch (status) {
+      case 'In Stock':
+        return <BadgeCustom variant="success">{status}</BadgeCustom>;
+      case 'Low Stock':
+        return <BadgeCustom variant="warning">{status}</BadgeCustom>;
+      case 'Out of Stock':
+        return <BadgeCustom variant="destructive">{status}</BadgeCustom>;
+      default:
+        return <BadgeCustom variant="default">{status}</BadgeCustom>;
+    }
   };
-
+  
+  const getSustainabilityScoreBadge = (score) => {
+    if (score >= 90) {
+      return <BadgeCustom variant="success">{score}</BadgeCustom>;
+    } else if (score >= 70) {
+      return <BadgeCustom variant="warning">{score}</BadgeCustom>;
+    } else {
+      return <BadgeCustom variant="destructive">{score}</BadgeCustom>;
+    }
+  };
+  
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
-            <p className="text-muted-foreground">Track and manage your sustainable inventory</p>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Inventory Management</h1>
+          <p className="text-muted-foreground">Track and manage your sustainable product inventory</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-between">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search inventory..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-          <Button onClick={handleAddInventory} className="gap-1.5">
-            <Plus className="size-4" />
-            Add Item
-          </Button>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+              <DialogTrigger asChild>
+                <Button className="ml-auto">
+                  <Plus className="h-4 w-4 mr-2" /> Add Item
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[550px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Inventory Item</DialogTitle>
+                  <DialogDescription>
+                    Enter the details for the new inventory item. Click save when you're done.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Item Name
+                    </Label>
+                    <Input id="name" className="col-span-3" />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="category" className="text-right">
+                      Category
+                    </Label>
+                    <Select>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.filter(c => c !== 'All').map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="quantity" className="text-right">
+                      Quantity
+                    </Label>
+                    <Input id="quantity" type="number" className="col-span-3" />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="supplier" className="text-right">
+                      Supplier
+                    </Label>
+                    <Input id="supplier" className="col-span-3" />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="sustainability" className="text-right">
+                      Sustainability Score
+                    </Label>
+                    <Input id="sustainability" type="number" min="0" max="100" className="col-span-3" />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => setIsAddModalOpen(false)}>Save</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
         
         <Card>
-          <CardHeader>
-            <CardTitle>Inventory Items</CardTitle>
-            <CardDescription>Manage your inventory across all warehouses</CardDescription>
-            <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search items..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Button variant="outline" className="gap-1.5">
-                <Filter className="size-4" />
-                Filter
-              </Button>
-              <Button variant="outline" className="gap-1.5">
-                <ArrowUpDown className="size-4" />
-                Sort
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
+          <CardContent className="p-0">
+            <div className="overflow-auto max-h-[70vh]">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 bg-card">
                   <TableRow>
-                    <TableHead>Name</TableHead>
+                    <TableHead className="w-[100px]">ID</TableHead>
+                    <TableHead className="min-w-[200px]">
+                      <div className="flex items-center gap-1">
+                        Product Name <ArrowUpDown className="h-4 w-4" />
+                      </div>
+                    </TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Quantity</TableHead>
+                    <TableHead>Stock</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Location</TableHead>
+                    <TableHead>Supplier</TableHead>
+                    <TableHead className="text-center">Sustainability Score</TableHead>
                     <TableHead>Last Updated</TableHead>
-                    <TableHead className="text-right">Sustainability</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredItems.map((item) => (
-                    <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell>{item.category}</TableCell>
-                      <TableCell className="text-right">{item.quantity} {item.unit}</TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          item.status === 'In Stock' ? 'default' :
-                          item.status === 'Low Stock' ? 'warning' : 'destructive'
-                        }>
-                          {item.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{item.location}</TableCell>
-                      <TableCell>{item.lastUpdated}</TableCell>
-                      <TableCell className="text-right">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          item.sustainabilityScore >= 90 ? 'bg-success/15 text-success' :
-                          item.sustainabilityScore >= 80 ? 'bg-primary/15 text-primary' :
-                          'bg-warning/15 text-warning'
-                        }`}>
-                          {item.sustainabilityScore}/100
-                        </span>
+                  {filteredInventory.length > 0 ? (
+                    filteredInventory.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.id}</TableCell>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.category}</TableCell>
+                        <TableCell>{item.stockLevel}</TableCell>
+                        <TableCell>{getStockStatusBadge(item.status)}</TableCell>
+                        <TableCell>{item.supplier}</TableCell>
+                        <TableCell className="text-center">
+                          {getSustainabilityScoreBadge(item.sustainabilityScore)}
+                        </TableCell>
+                        <TableCell>{item.lastUpdated}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm">Edit</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-8">
+                        No inventory items found. Try adjusting your filters.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
