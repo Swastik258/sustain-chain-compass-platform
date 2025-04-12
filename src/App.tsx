@@ -10,6 +10,13 @@ import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import Analytics from "./pages/Analytics";
+import Inventory from "./pages/Inventory";
+import Orders from "./pages/Orders";
+import Suppliers from "./pages/Suppliers";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,7 +44,7 @@ const App = () => (
               path="/analytics" 
               element={
                 <PrivateRoute>
-                  <Dashboard />
+                  <Analytics />
                 </PrivateRoute>
               } 
             />
@@ -45,7 +52,7 @@ const App = () => (
               path="/inventory" 
               element={
                 <PrivateRoute>
-                  <Dashboard />
+                  <Inventory />
                 </PrivateRoute>
               } 
             />
@@ -53,7 +60,7 @@ const App = () => (
               path="/orders" 
               element={
                 <PrivateRoute>
-                  <Dashboard />
+                  <Orders />
                 </PrivateRoute>
               } 
             />
@@ -61,7 +68,7 @@ const App = () => (
               path="/suppliers" 
               element={
                 <PrivateRoute>
-                  <Dashboard />
+                  <Suppliers />
                 </PrivateRoute>
               } 
             />
@@ -69,7 +76,7 @@ const App = () => (
               path="/reports" 
               element={
                 <PrivateRoute>
-                  <Dashboard />
+                  <Reports />
                 </PrivateRoute>
               } 
             />
@@ -77,7 +84,7 @@ const App = () => (
               path="/settings" 
               element={
                 <PrivateRoute>
-                  <Dashboard />
+                  <Settings />
                 </PrivateRoute>
               } 
             />
@@ -85,7 +92,7 @@ const App = () => (
               path="/help" 
               element={
                 <PrivateRoute>
-                  <Dashboard />
+                  <Help />
                 </PrivateRoute>
               } 
             />
